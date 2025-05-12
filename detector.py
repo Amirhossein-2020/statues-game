@@ -12,7 +12,7 @@ class PersonDetector:
         return detections, keypoints
     
     def detect_face(self, img):
-        results = self.model(img)
+        results = self.modelFace(img)
 
         if results[0].boxes != None:
             boxes = results[0].boxes.xyxy.cpu().numpy().astype(int)
