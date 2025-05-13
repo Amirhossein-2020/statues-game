@@ -1,3 +1,6 @@
+## WHO IS CURRENTLY WORKING IN IT?
+Giovanni
+
 ## Setup
 
 ```bash
