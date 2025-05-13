@@ -13,6 +13,7 @@ from deepface import DeepFace
 
 from detector import PersonDetector
 import db
+import recognition
 
 
 def save_image(image):
@@ -30,25 +31,32 @@ def crop_image(image, coordinates, save=False):
     else:
         return image
 
-def checkFace(frame, databaseListPath, face_match, i):
+def checkFace(frame, faceBox, imageListPath, faceMatch, i):
 
-    for path in databaseListPath:
-        try:
-            if DeepFace.verify(frame, path, model_name="Facenet512")["verified"]:
-                face_match[i] = True
+    x1, y1, x2, y2 = map(int, faceBox)
+
+    try:
+        for path in imageListPath:
+            if DeepFace.verify(frame[y1:y2, x1:x2], path)["verified"]:
+                faceMatch[i] = True
                 break
             else:
-                face_match[i] = False
-        except:
-            face_match[i] = False
+                faceMatch[i] = False
+    except:
+        faceMatch[i] = False
+
+imgSaveCount = 1
 
 def main():
     os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
     # Initialize Variable
-    video = cv2.VideoCapture("http://192.168.53.162:4747/video")
+    #video = cv2.VideoCapture("http://192.168.53.162:4747/video")
+    video = cv2.VideoCapture(1)
 
     user32 = ctypes.windll.user32
     win_x, win_y = [user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)]
+
+    global imgSaveCount
 
     observer = PersonDetector()
     database = db.DB()
@@ -60,11 +68,10 @@ def main():
     cv2.setWindowProperty("Statues Game", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
     # Game Variable
-    screenshot = None
-    screenshotBool = False
-    state = "Unknown" 
     face_match = []
     counter = 0 # "pseudo time"
+    a = ["Giovanni", "Tizio a caso", "Carla", "Unknown"]
+
 
     while True:
 
@@ -76,34 +83,47 @@ def main():
         frame = cv2.resize(frame, (win_x, win_y))
 
         boxes = observer.detect_face(frame)
+        boxes = sorted(boxes, key=lambda b: b[0])
 
         # Se in webcam ci sono più persone che in face_match aumenta fino al numero di persone
         if len(boxes) > len(face_match):
             for i in range(len(face_match), len(boxes)):
                 face_match.append(False)
 
-        for i, face in enumerate(boxes):
+        face_match = face_match[0:len(boxes)]
+        
 
-            x1, y1, x2, y2 = map(int, face)
-            
-            if counter % 15 == 0:
+        for i, box in enumerate(boxes):
+            x1, y1, x2, y2 = map(int, box)
+
+            if counter % 30 == 0:
+
                 try:
-                    threading.Thread(target=checkFace, args=(frame, database.imageListPath, face_match, i)).start()
+                    threading.Thread(target=recognition.checkFace, args=(frame[y1:y2, x1:x2], database.imageListPath, face_match, i)).start()
                 except ValueError:
                     pass
+                '''
+                try:
+                    #faces = DeepFace.extract_faces(frame)
+                    
+                    for path in database.imageListPath:
+                        if DeepFace.verify(frame[y1:y2, x1:x2], path)["verified"]:
+                            face_match[i] = True
+                            break
+                        else:
+                            face_match[i] = False
+                except:
+                    face_match[i] = False
+                recognition.checkFace(frame[y1:y2, x1:x2], database.imageListPath, face_match, i)
+                '''
+                
 
             if face_match[i]:
-                cv2.putText(frame, "Giovanni", (x1,y1-20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
+                cv2.putText(frame, a[i], (x1,y1-20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
             else:
-                cv2.putText(frame, state, (x1,y1-20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
+                cv2.putText(frame, a[-1], (x1,y1-20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
-
-        if screenshotBool:
-            for face in boxes:
-                crop_image(frame, face, True)
-            screenshotBool = False
-
 
         cv2.imshow("Statues Game", frame)
         counter += 1
@@ -112,8 +132,6 @@ def main():
         if key == 27: #ESC
             # Close program
             break
-        if (key == ord('s') or key == ord('s')):
-            screenshotBool = True
 
 
 if __name__ == "__main__":
