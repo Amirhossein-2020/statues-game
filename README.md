@@ -1,7 +1,7 @@
 ## Setup
 
 ```bash
-git clone https://github.com/yourusername/statues-game.git
+git clone https://github.com/Amirhossein-2020/statues-game.git
 cd statues-game
 python -m venv venv
 source venv/bin/activate
