@@ -98,11 +98,11 @@ def main():
 
             if counter % 30 == 0:
 
+                '''
                 try:
                     threading.Thread(target=recognition.checkFace, args=(frame[y1:y2, x1:x2], database.imageListPath, face_match, i)).start()
                 except ValueError:
                     pass
-                '''
                 try:
                     #faces = DeepFace.extract_faces(frame)
                     
@@ -114,9 +114,11 @@ def main():
                             face_match[i] = False
                 except:
                     face_match[i] = False
-                recognition.checkFace(frame[y1:y2, x1:x2], database.imageListPath, face_match, i)
                 '''
-                
+                try:
+                    recognition.checkFace(frame[y1:y2, x1:x2], database.imageListPath, face_match, i)
+                except:
+                    pass
 
             if face_match[i]:
                 cv2.putText(frame, a[i], (x1,y1-20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
