@@ -1,16 +1,22 @@
 from deepface import DeepFace
+import cv2
 
 def checkFace(imgToCompare, imageListPath, faceMatch, i):
 
     try:
         for path in imageListPath:
-            if DeepFace.verify(imgToCompare, path)["verified"]:
+            result = DeepFace.verify(imgToCompare, path)
+
+            print(f"distance: {result["distance"]}, thresold: {result["threshold"]}, Person: {i}")
+
+            if result["verified"]:
                 faceMatch[i] = True
                 break
-            else:
-                faceMatch[i] = False
-    except:
-        faceMatch[i] = False
+        else:
+            faceMatch[i] = False
+
+    except ValueError:
+        pass
 
 # USELESS
 def extractFace(frame, Faces):

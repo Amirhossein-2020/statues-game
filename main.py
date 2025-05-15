@@ -69,9 +69,10 @@ def main():
 
     # Game Variable
     face_match = []
+    Threads = []
     counter = 0 # "pseudo time"
     a = ["Giovanni", "Tizio a caso", "Carla", "Unknown"]
-
+    check = False
 
     while True:
 
@@ -86,39 +87,33 @@ def main():
         boxes = sorted(boxes, key=lambda b: b[0])
 
         # Se in webcam ci sono più persone che in face_match aumenta fino al numero di persone
-        if len(boxes) > len(face_match):
-            for i in range(len(face_match), len(boxes)):
-                face_match.append(False)
+        requiredSlot = len(boxes) - len(face_match)
+        if requiredSlot > 0:
+            face_match.extend([False] * requiredSlot)
+            Threads.extend([None] * requiredSlot)
 
-        face_match = face_match[0:len(boxes)]
-        
+        faceToCheck = len(boxes)
+
+        #face_match = face_match[0:len(boxes)]
+
+        '''
+        while len(boxes) < len(face_match):
+            face_match.pop()
+        '''
+
 
         for i, box in enumerate(boxes):
             x1, y1, x2, y2 = map(int, box)
 
             if counter % 30 == 0:
+            #if check:
+                try:
+                    if (i < faceToCheck):
+                        Threads[i] = (threading.Thread(target=recognition.checkFace, args=(frame[y1:y2, x1:x2].copy(), database.imageListPath, face_match, i)))
+                        Threads[i].start()
 
-                '''
-                try:
-                    threading.Thread(target=recognition.checkFace, args=(frame[y1:y2, x1:x2], database.imageListPath, face_match, i)).start()
                 except ValueError:
-                    pass
-                try:
-                    #faces = DeepFace.extract_faces(frame)
-                    
-                    for path in database.imageListPath:
-                        if DeepFace.verify(frame[y1:y2, x1:x2], path)["verified"]:
-                            face_match[i] = True
-                            break
-                        else:
-                            face_match[i] = False
-                except:
-                    face_match[i] = False
-                '''
-                try:
-                    recognition.checkFace(frame[y1:y2, x1:x2], database.imageListPath, face_match, i)
-                except:
-                    pass
+                    pass       
 
             if face_match[i]:
                 cv2.putText(frame, a[i], (x1,y1-20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
@@ -126,6 +121,8 @@ def main():
             else:
                 cv2.putText(frame, a[-1], (x1,y1-20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+        else:
+            check = False
 
         cv2.imshow("Statues Game", frame)
         counter += 1
@@ -134,6 +131,8 @@ def main():
         if key == 27: #ESC
             # Close program
             break
+        elif (key == ord('c') or key == ord('C')):
+            check = True
 
 
 if __name__ == "__main__":
