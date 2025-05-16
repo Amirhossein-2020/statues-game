@@ -4,13 +4,22 @@ import cv2
 def checkFace(imgToCompare, imageListPath, faceMatch, i):
 
     try:
-        for path in imageListPath:
-            result = DeepFace.verify(imgToCompare, path)
+        for key in imageListPath.keys():
+            for path in imageListPath[key]:
+                result = DeepFace.verify(imgToCompare, path)
 
-            print(f"distance: {result["distance"]}, thresold: {result["threshold"]}, Person: {i}")
+                print(f"distance: {result["distance"]}, thresold: {result["threshold"]}, Person: {i}, db_img: {path}")
+
+                if result["verified"]:
+                    faceMatch[i] = key
+                    break
+
+                # Se la % che non sia la persona della cartella è alta, cambia cartella
+                if result["distance"] > 0.80: 
+                    break
+
 
             if result["verified"]:
-                faceMatch[i] = True
                 break
         else:
             faceMatch[i] = False

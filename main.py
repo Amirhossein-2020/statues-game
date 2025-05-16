@@ -59,9 +59,10 @@ def main():
     global imgSaveCount
 
     observer = PersonDetector()
-    database = db.DB()
-    database.LoadDB()
-    #print(database)
+
+    # Initialize database
+    DB = db.DB()
+    DB.LoadDB()
 
     # Window options
     cv2.namedWindow("Statues Game", cv2.WND_PROP_FULLSCREEN)
@@ -71,8 +72,9 @@ def main():
     face_match = []
     Threads = []
     counter = 0 # "pseudo time"
-    a = ["Giovanni", "Tizio a caso", "Carla", "Unknown"]
     check = False
+    notRecognized = "Unknown"
+    #DB.printAllDatabase()
 
     while True:
 
@@ -90,16 +92,17 @@ def main():
         requiredSlot = len(boxes) - len(face_match)
         if requiredSlot > 0:
             face_match.extend([False] * requiredSlot)
-            Threads.extend([None] * requiredSlot)
+            Threads.extend([threading.Thread()] * requiredSlot)
 
         faceToCheck = len(boxes)
 
         #face_match = face_match[0:len(boxes)]
 
-        '''
-        while len(boxes) < len(face_match):
-            face_match.pop()
-        '''
+        
+        if len(boxes) < len(face_match):
+            for index in range(len(boxes), len(face_match)):
+                face_match[index] = False
+        
 
 
         for i, box in enumerate(boxes):
@@ -109,17 +112,19 @@ def main():
             #if check:
                 try:
                     if (i < faceToCheck):
-                        Threads[i] = (threading.Thread(target=recognition.checkFace, args=(frame[y1:y2, x1:x2].copy(), database.imageListPath, face_match, i)))
+                        if Threads[i].is_alive():
+                            continue
+                        Threads[i] = (threading.Thread(target=recognition.checkFace, args=(frame[y1:y2, x1:x2].copy(), DB.imageListPath, face_match, i)))
                         Threads[i].start()
 
                 except ValueError:
                     pass       
 
-            if face_match[i]:
-                cv2.putText(frame, a[i], (x1,y1-20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
+            if face_match[i] != False:
+                cv2.putText(frame, face_match[i], (x1,y1-20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
             else:
-                cv2.putText(frame, a[-1], (x1,y1-20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
+                cv2.putText(frame, notRecognized, (x1,y1-20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
         else:
             check = False
