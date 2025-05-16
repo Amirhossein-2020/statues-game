@@ -1,7 +1,7 @@
 import cv2
 import cv2.dnn_superres
 import numpy as np
-from detector import PersonDetector
+from detector import FaceDetector, PersonDetector
 import time
 import ctypes
 import random
@@ -38,9 +38,10 @@ def main():
 
     rng = np.random.RandomState(42)
     detector = PersonDetector()
+    faceDetector = FaceDetector()
     
     # Initialize Variable
-    video = cv2.VideoCapture(0)
+    video = cv2.VideoCapture(1)
 
     user32 = ctypes.windll.user32
     win_x, win_y = [user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)]
@@ -76,16 +77,17 @@ def main():
 
         people_boxes, people_keypoints = detector.detect_people(frame)
         people_boxes = sorted(people_boxes, key=lambda b: b[0])
+        face_boxes = faceDetector.detect_face(frame)
 
         # Timing
-       
+        x1, y1, x2, y2 = map(int, face_boxes[0])
+        cv2.rectangle(frame, (x1, y1), (x2, y2), (50, 200, 129), 2)
 
         if game_state != "idle":
 
             if game_state == "moving":
-                
+
                 # Moving phase lasts 3 seconds
-                
                 if time.time() - last_state_change > moving_time:
                     game_state = "frozen"
                     freeze_frame = frame.copy()
@@ -93,8 +95,9 @@ def main():
                     last_state_change = time.time()
 
             elif game_state == "frozen":
+
                 # Frozen phase lasts 10 seconds
-                if time.time() - last_state_change > freezing_time + INTERVAL_TIME:
+                if time.time() - last_state_change > freezing_time + INTERVAL_TIME:    
                     game_state = "moving"
                     moving_time = random.randint(10,15)    
                     freezing_time = random.randint(5,8)
@@ -115,7 +118,7 @@ def main():
 
                         if game_state == "frozen" and keybox not in eliminated and time.time() - last_state_change > INTERVAL_TIME:
                         #is_moving = detect_keypoint_movement(freeze_keypoints, people_keypoints)
-                            score = detect_movement(freeze_frame, frame, people_boxes[i]) 
+                            score = detect_movement(freeze_frame, frame, people_boxes[i])
                             if score > 16500 or detect_keypoint_movement(freeze_keypoints, people_keypoints):
                                 eliminated.add(keybox)
                             
@@ -140,11 +143,14 @@ def main():
                 state_text = f"{freezing_time - int(abs(time.time() - last_state_change))}s FREEZE"
             else:
                 state_text = "ROUND ENDED" 
+
         # Waiting time before going to "moving" phase
         if game_state == "idle" and starting_state == 1:
             waiting_time_to_start = time.time() - last_state_change
+            
             if  waiting_time_to_start > 3:
                 game_state = "moving"
+
             state_text = f"{3 - int(abs(waiting_time_to_start))}..."
 
         # Fixed screen values
@@ -159,7 +165,7 @@ def main():
         cv2.imshow("Statues Game", frame)
 
         key = cv2.waitKey(1)
-        if key == 27:
+        if key == 27: # ESC
             # Close program
             break
         elif (key == ord('r') or key == ord('R')) and game_state != "idle":
