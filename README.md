@@ -27,9 +27,11 @@ pip install -r requirements.txt
 
 - Organise everything in other file except in the main.
 
-- Update requirements.txt
+> ~Update requirements.txt~
 
-- Merge branch with main.
+> ~Merge branch with main.~
+
+- Possibilità di aggiungere persone nuove
 
 ## Pensieri a caso:
 
