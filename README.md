@@ -10,12 +10,16 @@
 
 > ~Prende il nome della cartella (Nome giocatore) e la usa sul programma per dare il nome alla box~
 
-- Organise everything in other file except in the main.
+> ~Organise everything in other file except in the main.~
 
-- Update requirements.txt
+> ~Update requirements.txt~
 
-- Merge branch with main.
+> ~Merge branch with main.~
+
+- Rendere più efficiente l'algoritmo di ricerca
 
 ## Pensieri a caso:
 
 Fare il check all'inizio del gioco quando tutti i giocatori sono in posizione, rifare il check solo quando il numero dei giocatori diventa diverso dal numero che sono all'inizio.
+
+Cambiare yolo face con haar cascade (molto più leggero)

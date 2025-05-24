@@ -1,7 +1,7 @@
 import cv2
 import cv2.dnn_superres
 import numpy as np
-from detector import FaceDetector, PersonDetector
+from lib.detector import PersonDetector
 import time
 import ctypes
 import random
@@ -38,7 +38,6 @@ def main():
 
     rng = np.random.RandomState(42)
     detector = PersonDetector()
-    faceDetector = FaceDetector()
     
     # Initialize Variable
     video = cv2.VideoCapture(1)
