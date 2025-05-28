@@ -1,6 +1,32 @@
+<<<<<<< HEAD
+
+## To-do
+
+> # ~A working face recognition with only one persone in the screen.~
+>
+> <<<<<<< HEAD
+
+## WHO IS CURRENTLY WORKING ON IT?
+
+Giovanni
+
+## Setup
+
+```bash
+git clone https://github.com/Amirhossein-2020/statues-game.git
+cd statues-game
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+=======
+```
+
 ## To-do
 
 > ~A working face recognition with only one persone in the screen.~
+>
+> > > > > > > face-recognition-dev
+> > > > > > > 15597d2f9b33d7fbbacc2a9091fb9f8d18089e03
 
 > ~Extend it with more people on the screen.~
 
@@ -10,16 +36,28 @@
 
 > ~Prende il nome della cartella (Nome giocatore) e la usa sul programma per dare il nome alla box~
 
-> ~Organise everything in other file except in the main.~
+<<<<<<< HEAD
+
+> # ~Organise everything in other file except in the main.~
+
+- Organise everything in other file except in the main.
+  > > > > > > > 15597d2f9b33d7fbbacc2a9091fb9f8d18089e03
 
 > ~Update requirements.txt~
 
 > ~Merge branch with main.~
 
-- Rendere più efficiente l'algoritmo di ricerca
+<<<<<<< HEAD
+
+- # Rendere più efficiente l'algoritmo di ricerca
+- Possibilità di aggiungere persone nuove
+  > > > > > > > 15597d2f9b33d7fbbacc2a9091fb9f8d18089e03
 
 ## Pensieri a caso:
 
 Fare il check all'inizio del gioco quando tutti i giocatori sono in posizione, rifare il check solo quando il numero dei giocatori diventa diverso dal numero che sono all'inizio.
+<<<<<<< HEAD
 
-Cambiare yolo face con haar cascade (molto più leggero)
+# Cambiare yolo face con haar cascade (molto più leggero)
+
+> > > > > > > 15597d2f9b33d7fbbacc2a9091fb9f8d18089e03
