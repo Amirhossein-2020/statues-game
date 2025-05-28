@@ -1,11 +1,18 @@
 import cv2
 import cv2.dnn_superres
 import numpy as np
-from detector import PersonDetector
 import time
 import ctypes
 import random
 import math
+import threading
+import os
+
+from lib.detector import PersonDetector
+from lib import db, recognition
+
+from deepface import DeepFace
+
 #Function that detect movement based on keypoints
 def detect_keypoint_movement(kpts1, kpts2):
     for pid in range(len(kpts1)):
@@ -34,7 +41,15 @@ def detect_movement(prev, curr, box):
         score = np.sum(thresh) / 255
         return score
 
+def wait(Threads, Return):
+    for t in Threads:
+        if t.is_alive():
+            t.join()
+    
+    Return[0] = True
+
 def main():
+    os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
     rng = np.random.RandomState(42)
     detector = PersonDetector()
@@ -52,8 +67,11 @@ def main():
     #cv2.namedWindow("TMPR", cv2.WND_PROP_FULLSCREEN)
     #cv2.setWindowProperty("TMPR", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
+    #Initializing database
+    DB = db.DB()
+    DB.LoadDB()
+
     # Pre-game variable
-    eliminated = set()
     freeze_frame = None
     freeze_keypoints = None
     game_state = "idle" # moving, frozen, idle, ended
@@ -64,6 +82,27 @@ def main():
     moving_time = random.randint(10,15)    
     freezing_time = random.randint(5,8)
     INTERVAL_TIME = 0.8
+    eliminated = []
+
+    DBChanged = False
+
+    notRecognized = "Unknown"
+
+    # Face recognition variable
+    face_match = []
+    Threads = []
+    Thread = threading.Thread()
+    ControlThreadReturn = [False]
+    ControlThread = threading.Thread(target=wait,
+                                     args=(Threads, ControlThreadReturn, ),
+                                     daemon= True)
+    counter = 1
+
+    oneTimeRecognition = True
+    oneTimeThreadControl = True
+    playerRemain = 0
+    playerRemainList = []
+    DBPlayerToCheck = DB.playerList
 
     ### MAIN PROGRAM ###
     while True:
@@ -76,7 +115,38 @@ def main():
 
         people_boxes, people_keypoints = detector.detect_people(frame)
         people_boxes = sorted(people_boxes, key=lambda b: b[0])
+        face_boxes = detector.detect_face(frame)
+        face_boxes = sorted(face_boxes, key=lambda b: b[0])
 
+        if starting_state != 1:
+            # Se in webcam ci sono più persone che in face_match aumenta fino al numero di persone
+            requiredSlot = len(face_boxes) - len(face_match)
+            if requiredSlot > 0:
+                face_match.extend([False] * requiredSlot)
+                Threads.extend([threading.Thread()] * requiredSlot)
+
+            #face_match = face_match[0:len(boxes)]
+            if len(face_boxes) < len(face_match):
+                for index in range(len(face_boxes), len(face_match)):
+                    face_match[index] = False
+
+            if game_state == "idle":
+                playerRemain = len(face_boxes)
+ 
+                if (counter % 40 == 0):
+
+                    for i, box in enumerate(face_boxes):
+                        x1, y1, x2, y2 = map(int, box)
+
+                        try:
+                            if not Threads[i].is_alive():
+                                Threads[i] = (threading.Thread(target=recognition.checkFace, 
+                                                                args=(frame[y1:y2, x1:x2].copy(), DB.imageListPath, DBPlayerToCheck, face_match, i, ),
+                                                                daemon=True))
+                                Threads[i].start()
+
+                        except ValueError:
+                            pass
         # Timing
         if game_state != "idle":
 
@@ -104,30 +174,32 @@ def main():
             if len(people_boxes) > 0 and len(people_keypoints) > 0:
 
                 for i, keypoint in enumerate(people_keypoints):
-                    player_id = f"P{i+1}"
-                    if len(people_boxes) > 0:
-                        x1, y1, x2, y2 = map(int, people_boxes[i])
-                        keybox = tuple(map(int, people_boxes[i]))
-                    
-                    # Eliminate players if frozen and not already eliminated
-
-                        if game_state == "frozen" and keybox not in eliminated and time.time() - last_state_change > INTERVAL_TIME:
-                        #is_moving = detect_keypoint_movement(freeze_keypoints, people_keypoints)
-                            score = detect_movement(freeze_frame, frame, people_boxes[i])
-                            if score > 16500 or detect_keypoint_movement(freeze_keypoints, people_keypoints):
-                                eliminated.add(keybox)
+                    if i < playerRemain:
+                        player_id = face_match[i]
+                        if len(people_boxes) > 0:
+                            x1, y1, x2, y2 = map(int, people_boxes[i])
+                            #keybox = tuple(map(int, people_boxes[i]))
+                        
+                        # Eliminate players if frozen and not already eliminated
+                            if game_state == "frozen" and player_id not in eliminated and time.time() - last_state_change > INTERVAL_TIME:
+                            #is_moving = detect_keypoint_movement(freeze_keypoints, people_keypoints)
+                                score = detect_movement(freeze_frame, frame, people_boxes[i])
+                                if score > 16500 or detect_keypoint_movement(freeze_keypoints, people_keypoints):
+                                    eliminated.append(face_match[i])
+                                    #playerRemain -= 1
+                                    #playerRemainList.remove(player_id)
                             
 
-                    eliminated_flag = keybox in eliminated
-                    color = (0, 0, 255) if eliminated_flag else (0, 255, 0)
-                    status = "OUT" if eliminated_flag else "SAFE"
-                    label = f"{player_id} - {status}"
+                        eliminated_flag = player_id in eliminated
+                        color = (0, 0, 255) if eliminated_flag else (0, 255, 0)
+                        status = "OUT" if eliminated_flag else "SAFE"
+                        label = f"{player_id} - {status}"
 
-                    cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
-                    for k in keypoint:
-                        x,y,iv = k
-                        cv2.circle(frame, (int(x),int(y)), 3, color, -1)
-                    cv2.putText(frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+                        cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+                        for k in keypoint:
+                            x,y,iv = k
+                            cv2.circle(frame, (int(x),int(y)), 3, color, -1)
+                        cv2.putText(frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
             # Display current state
 
@@ -141,12 +213,37 @@ def main():
 
         # Waiting time before going to "moving" phase
         if game_state == "idle" and starting_state == 1:
-            waiting_time_to_start = time.time() - last_state_change
-            
-            if  waiting_time_to_start > 3:
-                game_state = "moving"
 
-            state_text = f"{3 - int(abs(waiting_time_to_start))}..."
+            if oneTimeThreadControl:
+                ControlThread.start()
+                oneTimeThreadControl = False
+
+            if ControlThread.is_alive():
+                state_text = f"Creating players... \n{ControlThread.is_alive} \n{ControlThreadReturn[0]}"
+                
+            if ControlThreadReturn[0]:
+                if oneTimeRecognition:
+                    oneTimeRecognition = False
+                   
+                    for i, box in enumerate(face_boxes):
+                        if face_match[i] is False:
+                            x1, y1, x2, y2 = map(int, box)
+                            DB.saveFace(frame[y1:y2, x1:x2].copy())
+                            face_match[i] = f"id{DB.lastUnkownPlayerId}"
+                
+                    DB.UpdateDB()
+                    last_state_change = time.time()
+                
+                waiting_time_to_start = time.time() - last_state_change
+                
+
+                if  (waiting_time_to_start > 3):
+                    game_state = "moving"
+                    
+                    playerRemain = len(face_boxes)
+                    playerRemainList = face_match[0:playerRemain].copy()
+                
+                state_text = f"{3 - int(abs(waiting_time_to_start))}..."
 
         # Fixed screen values
         cv2.putText(frame, state_text, (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
@@ -154,10 +251,21 @@ def main():
         cv2.putText(frame, f'''Score: {score}''', (20, 120), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
         
         # 3 seconds of preparation before game starts
-        
+
+        for i, box in enumerate(face_boxes):
+            if i < playerRemain:
+                x1, y1, x2, y2 = map(int, box)
+
+                if face_match[i]:
+                    cv2.putText(frame, face_match[i], (x1,y1-20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
+                else:
+                    cv2.putText(frame, notRecognized, (x1,y1-20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
+            
             
 
         cv2.imshow("Statues Game", frame)
+        counter += 1
+        print(counter)
 
         key = cv2.waitKey(1)
         if key == 27: # ESC
@@ -165,7 +273,7 @@ def main():
             break
         elif (key == ord('r') or key == ord('R')) and game_state != "idle":
             # Reset game variables
-            eliminated.clear()
+            playerRemain = []
             game_state = "moving"
             round_finished = False
             last_state_change = time.time()
@@ -173,7 +281,6 @@ def main():
         elif key == ord('s') or key == ord('S') and game_state == "idle":
             starting_state = 1
             # Start game after 3 seconds:
-            last_state_change = time.time()
     
     video.release()
     cv2.destroyAllWindows()

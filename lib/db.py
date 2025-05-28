@@ -1,5 +1,6 @@
 from PIL import Image
 import os, os.path
+import cv2
 
 class DB:
     def __init__(self):
@@ -10,9 +11,10 @@ class DB:
         # imageListPath & imageList have the same structure
         # Dict ["player_name"] = [list of images]
         self.imageListPath = {} # Store path of all image
-        self.imageList = {}     # Store Image
+        self.imageList = {}     # Store Image N.B. resta vuoto per evitare spreco di ram nel tenere caricate le immagini
         self.playerList = []    # db gets player name from the folder name # we can say playerList is a list of every folder inside database/players
-        
+        self.lastUnkownPlayerId = 0
+
         # * Audio variables * #
         self.totalAudio = 0
 
@@ -20,6 +22,7 @@ class DB:
         self.audioListPath = {} # Store audio .mp3
         self.audioDirList = []  # Store names of the folders inside database/audio
 
+    # FARE ATTENZIONE QUANDO VIENE CHIAMATA QUESTA FUNZIONE, CONTROLLARE LA CONCORRENZA
     def UpdateDB(self):
 
         # * Reset all variable * #
@@ -27,6 +30,7 @@ class DB:
         self.imageListPath = {}
         self.imageList = {}
         self.playerList = []
+        self.lastUnkownPlayerId = 0
         self.totalAudio = 0
         self.audioListPath = {}
         self.audioDirList = []
@@ -38,19 +42,25 @@ class DB:
         validAudioExt = [".mp3"]
 
         for TypedirName in os.listdir(path): # checking database/
-            if os.path.isdir(f"{path}/{TypedirName}"):
-                for dirName in os.listdir(f"{path}/{TypedirName}"): # checking database/type of dir
+            if os.path.isdir(os.path.join(path, TypedirName)):
+                for dirName in os.listdir(os.path.join(path, TypedirName)): # checking database/type of dir
                     
                     # * IF YOU ADD OR CHANGE NAME TO FOLDERS, ADD/UPDATE IT HERE * #
                     if TypedirName == "players":
                         self.playerList.append(dirName)
                         self.imageListPath[dirName] = []
                         self.imageList[dirName] = []
+
+                        if dirName[0:2] == "id":
+                            idToCreate = int(dirName[2:])
+                            if  idToCreate > self.lastUnkownPlayerId:
+                                self.lastUnkownPlayerId = idToCreate
+
                     elif TypedirName == "audio":
                         self.audioDirList.append(dirName)
                         self.audioListPath[dirName] = []
 
-                    for filename in os.listdir(f"{path}/{TypedirName}/{dirName}"): # Checking database/type of dir/contents
+                    for filename in os.listdir(os.path.join(path, TypedirName, dirName)): # Checking database/type of dir/contents
                         
                         ext = os.path.splitext(filename)[1]
 
@@ -59,7 +69,7 @@ class DB:
                                 continue
 
                             # Store image path
-                            imgPath = f"{path}/{TypedirName}/{dirName}/{filename}"
+                            imgPath = os.path.join(path, TypedirName, dirName, filename) 
                             self.imageListPath[dirName].append(imgPath)
 
                             # Store image
@@ -74,7 +84,7 @@ class DB:
                                 continue
 
                             # Store audio path
-                            audioPath = f"{path}/{TypedirName}/{dirName}/{filename}"
+                            audioPath = os.path.join(path, TypedirName, dirName, filename)
                             self.audioListPath[dirName].append(audioPath)
 
                             # Increase audio counter
@@ -104,7 +114,18 @@ class DB:
             self.imageList.append(img)
 
         self.totalImage = len(self.imageListPath)
+
+    def saveFace(self, face, path=os.path.join(os.path.abspath("."), "database\players")):
+        self.lastUnkownPlayerId += 1
+        dirname = f"id{self.lastUnkownPlayerId}"
+        try:
+            os.mkdir(os.path.join(path, dirname))
+        except:
+            pass
         
+        cropped_path = os.path.join(path, dirname, f"{dirname}.jpg")
+        cv2.imwrite(cropped_path, face)
+
     def printAllDatabase(self):
 
         print("\n---- Printing players ----")
@@ -143,7 +164,7 @@ class DB:
 
     # OUTDATED
     # original name __str__
-    def __str(self):
+    def __str__(self):
 
         return "------------ Database ------------\n" + \
                 f"Total image: {self.totalImage},\nImage Path:\n\t" + \
