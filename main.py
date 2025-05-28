@@ -1,7 +1,7 @@
 import cv2
 import cv2.dnn_superres
 import numpy as np
-from detector import FaceDetector, PersonDetector
+from detector import PersonDetector
 import time
 import ctypes
 import random
@@ -38,7 +38,6 @@ def main():
 
     rng = np.random.RandomState(42)
     detector = PersonDetector()
-    faceDetector = FaceDetector()
     
     # Initialize Variable
     video = cv2.VideoCapture(1)
@@ -77,12 +76,8 @@ def main():
 
         people_boxes, people_keypoints = detector.detect_people(frame)
         people_boxes = sorted(people_boxes, key=lambda b: b[0])
-        face_boxes = faceDetector.detect_face(frame)
 
         # Timing
-        x1, y1, x2, y2 = map(int, face_boxes[0])
-        cv2.rectangle(frame, (x1, y1), (x2, y2), (50, 200, 129), 2)
-
         if game_state != "idle":
 
             if game_state == "moving":
