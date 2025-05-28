@@ -178,7 +178,7 @@ def main():
                         player_id = face_match[i]
                         if len(people_boxes) > 0:
                             x1, y1, x2, y2 = map(int, people_boxes[i])
-                            keybox = tuple(map(int, people_boxes[i]))
+                            #keybox = tuple(map(int, people_boxes[i]))
                         
                         # Eliminate players if frozen and not already eliminated
                             if game_state == "frozen" and player_id not in eliminated and time.time() - last_state_change > INTERVAL_TIME:
@@ -186,8 +186,8 @@ def main():
                                 score = detect_movement(freeze_frame, frame, people_boxes[i])
                                 if score > 16500 or detect_keypoint_movement(freeze_keypoints, people_keypoints):
                                     eliminated.append(face_match[i])
-                                    playerRemain -= 1
-                                    playerRemainList.remove(player_id)
+                                    #playerRemain -= 1
+                                    #playerRemainList.remove(player_id)
                             
 
                         eliminated_flag = player_id in eliminated
