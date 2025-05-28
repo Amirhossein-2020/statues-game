@@ -73,8 +73,8 @@ class DB:
                             self.imageListPath[dirName].append(imgPath)
 
                             # Store image
-                            #img = Image.open(imgPath)
-                            #self.imageList[dirName].append(img)
+                            img = Image.open(imgPath)
+                            self.imageList[dirName].append(img)
 
                             # Increase img counter
                             self.totalImage += 1

@@ -84,6 +84,25 @@ def OneThreadCheckFace(frame, imageListPath, keys, faceMatch, boxes):
 def checkFace(imgToCompare, imageListPath, keys, faceMatch, i):
 
     try:
+        if faceMatch[i] is not False:
+            key = faceMatch[i]
+
+            for path in imageListPath[key]:
+                    result = DeepFace.verify(imgToCompare, path, model_name="Facenet")
+
+                    print(f"distance: {result["distance"]}, thresold: {result["threshold"]}, Person: {i}, db_img: {path}, fast way.")
+
+                    if result["verified"]:
+                        faceMatch[i] = key
+                        break
+
+                    # Se la % che non sia la persona della cartella è alta, cambia cartella
+                    if result["distance"] > 0.70: 
+                        break
+    except:
+        pass
+
+    try:
         for key in keys:
             for path in imageListPath[key]:
                 result = DeepFace.verify(imgToCompare, path)
@@ -95,7 +114,7 @@ def checkFace(imgToCompare, imageListPath, keys, faceMatch, i):
                     break
 
                 # Se la % che non sia la persona della cartella è alta, cambia cartella
-                if result["distance"] > 0.68: 
+                if result["distance"] > 0.70: 
                     break
 
 
