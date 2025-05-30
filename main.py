@@ -141,7 +141,7 @@ def main():
                         try:
                             if not Threads[i].is_alive():
                                 Threads[i] = (threading.Thread(target=recognition.checkFace, 
-                                                                args=(frame[y1:y2, x1:x2].copy(), DB.imageListPath, DBPlayerToCheck, face_match, i, ),
+                                                                args=(frame[y1:y2, x1:x2].copy(), DB.imageList, DBPlayerToCheck, face_match, i, ),
                                                                 daemon=True))
                                 Threads[i].start()
 
@@ -186,9 +186,10 @@ def main():
                                 score = detect_movement(freeze_frame, frame, people_boxes[i])
                                 if score > 16500 or detect_keypoint_movement(freeze_keypoints, people_keypoints):
                                     eliminated.append(face_match[i])
+                                    #TODO: 
                                     #playerRemain -= 1
                                     #playerRemainList.remove(player_id)
-                            
+                                    
 
                         eliminated_flag = player_id in eliminated
                         color = (0, 0, 255) if eliminated_flag else (0, 255, 0)
@@ -202,8 +203,7 @@ def main():
                         cv2.putText(frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
             # Display current state
-
-             
+  
             if game_state == "moving":
                 state_text = f"{moving_time - int(abs(time.time() - last_state_change))}s MOVE"
             elif game_state == "frozen":

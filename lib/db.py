@@ -13,7 +13,7 @@ class DB:
         self.imageListPath = {} # Store path of all image
         self.imageList = {}     # Store Image N.B. resta vuoto per evitare spreco di ram nel tenere caricate le immagini
         self.playerList = []    # db gets player name from the folder name # we can say playerList is a list of every folder inside database/players
-        self.lastUnkownPlayerId = 0
+        self.lastUnknownPlayerId = 0
 
         # * Audio variables * #
         self.totalAudio = 0
@@ -30,7 +30,7 @@ class DB:
         self.imageListPath = {}
         self.imageList = {}
         self.playerList = []
-        self.lastUnkownPlayerId = 0
+        self.lastUnknownPlayerId = 0
         self.totalAudio = 0
         self.audioListPath = {}
         self.audioDirList = []
@@ -51,10 +51,12 @@ class DB:
                         self.imageListPath[dirName] = []
                         self.imageList[dirName] = []
 
+                        # Salva l'ultimo id creato, self.lastUnknowPlayerId = 2 se ultima cartella id è id2
+                        # self.lastUnknowPlayerId = 15 se ultima cartella id è id15
                         if dirName[0:2] == "id":
                             idToCreate = int(dirName[2:])
-                            if  idToCreate > self.lastUnkownPlayerId:
-                                self.lastUnkownPlayerId = idToCreate
+                            if  idToCreate > self.lastUnknownPlayerId:
+                                self.lastUnknownPlayerId = idToCreate
 
                     elif TypedirName == "audio":
                         self.audioDirList.append(dirName)
@@ -115,9 +117,9 @@ class DB:
 
         self.totalImage = len(self.imageListPath)
 
-    def saveFace(self, face, path=os.path.join(os.path.abspath("."), "database\players")):
-        self.lastUnkownPlayerId += 1
-        dirname = f"id{self.lastUnkownPlayerId}"
+    def saveFace(self, face, path=os.path.join(os.path.abspath("."), "database\\players")):
+        self.lastUnknownPlayerId += 1
+        dirname = f"id{self.lastUnknownPlayerId}"
         try:
             os.mkdir(os.path.join(path, dirname))
         except:
@@ -164,7 +166,7 @@ class DB:
 
     # OUTDATED
     # original name __str__
-    def __str__(self):
+    def __str(self):
 
         return "------------ Database ------------\n" + \
                 f"Total image: {self.totalImage},\nImage Path:\n\t" + \

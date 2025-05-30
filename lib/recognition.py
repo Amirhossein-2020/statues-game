@@ -1,8 +1,8 @@
 from deepface import DeepFace
 import threading
+import numpy as np
 
 from lib.detector import PersonDetector
-from lib import utils
 
 # Game Variable
 Threads = []
@@ -83,6 +83,7 @@ def OneThreadCheckFace(frame, imageListPath, keys, faceMatch, boxes):
 
 def checkFace(imgToCompare, imageListPath, keys, faceMatch, i):
 
+    '''
     try:
         if faceMatch[i] is not False:
             key = faceMatch[i]
@@ -101,36 +102,38 @@ def checkFace(imgToCompare, imageListPath, keys, faceMatch, i):
                         break
     except:
         pass
+        
+    '''
 
-    try:
-        for key in keys:
-            for path in imageListPath[key]:
-                result = DeepFace.verify(imgToCompare, path)
+    result = {"verified": False}
 
-                print(f"distance: {result["distance"]}, thresold: {result["threshold"]}, Person: {i}, db_img: {path}")
+    for key in keys:
+        for path in imageListPath[key]:
+            img = path
 
+            if type(path) != str:
+                img = np.array(path)
+            
+            try:
+                result = DeepFace.verify(imgToCompare, img)
+            
+            except Exception as e:         
+                print("ERRORE, Immagine brutta")
+                print(e)
+                continue
+
+            print(f"distance: {result["distance"]}, thresold: {result["threshold"]}, Person: {i}, db_img: {path}")
+
+            # Se la % che non sia la persona della cartella è alta, cambia cartella
+            # Se è match, esci dalla funzione
+            if result["verified"] or result["distance"] > 0.70:
                 if result["verified"]:
                     faceMatch[i] = key
-                    break
-
-                # Se la % che non sia la persona della cartella è alta, cambia cartella
-                if result["distance"] > 0.70: 
-                    break
-
-
-            if result["verified"]:
+                
                 break
-        else:
-            faceMatch[i] = False
 
-    except:
-        pass
-     
-
-# USELESS
-def extractFace(frame, Faces):
-    try:
-        ## LIST[DICT[STR, value]]
-        Faces = DeepFace.extract_faces(frame)
-    except:
-        Faces.append(False) ## Faces[0] == FALSE only if extractFace doesn't work
+        if result["verified"]:
+            break
+    else:
+        # Se giro tutto il database e non trovo la faccia, il giocatore ancora non esiste
+        faceMatch[i] = False
