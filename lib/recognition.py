@@ -136,4 +136,4 @@ def checkFace(imgToCompare, imageListPath, keys, faceMatch, i):
             break
     else:
         # Se giro tutto il database e non trovo la faccia, il giocatore ancora non esiste
-        faceMatch[i] = False
+        faceMatch[i] = "Not in database"
