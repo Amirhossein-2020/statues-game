@@ -39,7 +39,7 @@ class DB:
 
     def LoadDB(self, path="database"):
         validImageExt = [".jpg", ".jpeg", ".png"]
-        validAudioExt = [".mp3"]
+        validAudioExt = [".wav", ".mp3"]
 
         for TypedirName in os.listdir(path): # checking database/
             if os.path.isdir(os.path.join(path, TypedirName)):
