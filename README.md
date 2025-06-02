@@ -11,4 +11,4 @@ pipenv shell
 ## Pensieri a caso:
 
 - Fare il check all'inizio del gioco quando tutti i giocatori sono in posizione, rifare il check solo quando il numero dei giocatori diventa diverso dal numero che sono all'inizio.
-- Cambiare yolo face con haar cascade (molto più leggero)
+- 
