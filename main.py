@@ -19,7 +19,7 @@ def main():
 
 
     # Window options
-    video = cv2.VideoCapture(0)
+    video = cv2.VideoCapture(1)
     user32 = ctypes.windll.user32
     win_x, win_y = [user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)]
     area_win = win_x * win_y
@@ -72,6 +72,7 @@ def main():
 
     oneTimeRecognition = True
     oneTimeThreadControl = True
+    firstRecognitionStarted = False
 
     ### MAIN PROGRAM ###
     while True:
@@ -106,6 +107,7 @@ def main():
  
                 if (counter % 20 == 0):
                     launch_face_threads(face_boxes, frame, DB, DBPlayerToCheck, face_match, Threads)
+                    firstRecognitionStarted = True
         
 
         # Timing
@@ -260,9 +262,12 @@ def main():
             oneTimeThreadControl = True
             ControlThreadReturn[0] = False
             ControlThread = threading.Thread(target=wait, args=(Threads, ControlThreadReturn,), daemon=True)
+            firstRecognitionStarted = False
         elif key == ord('s') or key == ord('S') and game_state == "idle":
-            starting_state = 1
-            # Start game after 3 seconds:
+            if firstRecognitionStarted:
+                starting_state = 1
+            else:
+                print("Wait a bit, the first initialization of the players hasn't started yet.")
     
     video.release()
     cv2.destroyAllWindows()
