@@ -81,7 +81,7 @@ def OneThreadCheckFace(frame, imageListPath, keys, faceMatch, boxes):
             pass
 
 
-def checkFace(imgToCompare, imageListPath, keys, faceMatch, i):
+def checkFace(imgToCompare, DB, keys, faceMatch, i):
 
     '''
     try:
@@ -108,11 +108,17 @@ def checkFace(imgToCompare, imageListPath, keys, faceMatch, i):
     result = {"verified": False}
 
     for key in keys:
-        for path in imageListPath[key]:
+        for i, path in enumerate(DB.imageList[key]):
+
             img = path
 
-            if type(path) != str:
-                img = np.array(path)
+            try:
+                if type(path) != str:
+                    img = np.array(path)
+                else:
+                    img = path
+            except:
+                img = DB.imageListPath[key][i]
             
             try:
                 result = DeepFace.verify(imgToCompare, img)
@@ -122,7 +128,7 @@ def checkFace(imgToCompare, imageListPath, keys, faceMatch, i):
                 print(e)
                 continue
 
-            print(f"distance: {result['distance']}, threshold: {result['threshold']}, Person: {i}, db_img: {path}")
+            print(f"distance: {result['distance']}, threshold: {result['threshold']}, Person: {i}, db_img: {DB.imageListPath[key][i]}")
 
             # Se la % che non sia la persona della cartella è alta, cambia cartella
             # Se è match, esci dalla funzione

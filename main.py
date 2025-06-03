@@ -19,7 +19,7 @@ def main():
 
 
     # Window options
-    video = cv2.VideoCapture(0)
+    video = cv2.VideoCapture(1)
     user32 = ctypes.windll.user32
     win_x, win_y = [user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)]
     cv2.namedWindow("Statues Game", cv2.WND_PROP_FULLSCREEN)
@@ -30,7 +30,7 @@ def main():
     DB.LoadDB()
 
     # Sound Manager
-    sound_manager = SoundManager()
+    sound_manager = SoundManager(DB)
     sound_manager.play("idle", loop=True)
 
     # Pre-game variables
@@ -85,14 +85,15 @@ def main():
         face_boxes = detector.detect_face(frame)
         face_boxes = sorted(face_boxes, key=lambda b: b[0])
         
+        # If there are more people in webcam comparing to face_match, increase until they are equal
+        requiredSlot = len(face_boxes) - len(face_match)
+        if requiredSlot > 0:
+            face_match.extend([notRecognized] * requiredSlot)
+            Threads.extend([threading.Thread()] * requiredSlot)
+
 
         if starting_state != 1:
-            # If theere are more people in webcam comparing to face_match, increase until they are equal
-            requiredSlot = len(face_boxes) - len(face_match)
-            if requiredSlot > 0:
-                face_match.extend([notRecognized] * requiredSlot)
-                Threads.extend([threading.Thread()] * requiredSlot)
-
+            
             #face_match = face_match[0:len(boxes)]
             if len(face_boxes) < len(face_match):
                 for index in range(len(face_boxes), len(face_match)):

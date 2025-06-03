@@ -65,6 +65,6 @@ def main():
         '''
     
     DB.printAllDatabase()
-    print(DB.playerList)
+    print(DB.audioListPath)
 
 main()

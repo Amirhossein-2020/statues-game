@@ -17,7 +17,7 @@ def launch_face_threads(face_boxes, frame, DB, DBPlayerToCheck, face_match, Thre
             if not Threads[i].is_alive():
                 Threads[i] = threading.Thread(
                     target=checkFace,
-                    args=(frame[y1:y2, x1:x2].copy(), DB.imageList, DBPlayerToCheck, face_match, i),
+                    args=(frame[y1:y2, x1:x2].copy(), DB, DBPlayerToCheck, face_match, i),
                     daemon=True
                 )
                 Threads[i].start()
