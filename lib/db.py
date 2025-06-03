@@ -96,6 +96,7 @@ class DB:
         print("------------------------")
         print(f"Loaded {self.totalImage} images.")
         print(f"Loaded {self.totalAudio} audio.")
+        print(f"List: {self.audioListPath}")
         print("------------------------")
 
     # OUTDATED
