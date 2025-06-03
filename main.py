@@ -19,7 +19,7 @@ def main():
 
 
     # Window options
-    video = cv2.VideoCapture(1)
+    video = cv2.VideoCapture(0)
     user32 = ctypes.windll.user32
     win_x, win_y = [user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)]
     cv2.namedWindow("Statues Game", cv2.WND_PROP_FULLSCREEN)
