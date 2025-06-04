@@ -108,6 +108,11 @@ def main():
                     firstRecognitionStarted = True
         
 
+            for i, box in enumerate(face_boxes):
+                if i < initialPlayerRemain:
+                    x1, y1, x2, y2 = map(int, box)
+                    cv2.putText(frame, face_match[i], (x1,y1-20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
+
         # Timing
         if game_state != "idle":
 
@@ -151,7 +156,7 @@ def main():
                         area_box = (x2 - x1) * (y2 - y1)
                         # Eliminate players if frozen and not already eliminated
                         if game_state == "frozen" and player_id not in eliminated and time.time() - last_state_change > INTERVAL_TIME:
-                            is_moving = MovementDetector.detect_keypoint_movement(freeze_keypoints, people_keypoints, area_win, area_box, i)
+                            is_moving = MovementDetector.detect_keypoint_movement(freeze_keypoints, people_keypoints, area_win, area_box)
                             #score = MovementDetector.detect_movement(freeze_frame, frame, people_boxes[i])
                             if is_moving:
                                 eliminated.append(face_match[i])
@@ -231,13 +236,6 @@ def main():
         if game_state == "GAME ENDED!":
             cv2.putText(frame, "Press R to restart", (int(win_x/2), int(win_y/2)), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 1)
             cv2.putText(frame, "Esc to exit", (int(win_x/2), int((win_y/2)+30)), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 1)
-
-        
-        for i, box in enumerate(face_boxes):
-            if i < initialPlayerRemain:
-                x1, y1, x2, y2 = map(int, box)
-                cv2.putText(frame, face_match[i], (x1,y1-20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
-        
 
         cv2.imshow("Statues Game", frame)
         counter += 1
