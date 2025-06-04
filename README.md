@@ -8,36 +8,46 @@ pipenv shell
 =======
 ```
 
-## Pensieri a caso:
-
-- Fare il check all'inizio del gioco quando tutti i giocatori sono in posizione, rifare il check solo quando il numero dei giocatori diventa diverso dal numero che sono all'inizio.
-- Cambiare yolo face con haar cascade (molto più leggero)
+## REQUIRED python 3.10!
 
 ## Baba Jaga game
-It is a real-time computer vision game inspired by "Red Light, Green Light". Players move during the "green light" (moving phase) and must freeze during the "red light" (frozen phase). If a player moves during the frozen state, they are eliminated. The game uses webcam input, pose detection, and face recognition to track players and enforce rules.
+It is a real-time computer vision game inspired by "Red Light, Green Light". Players move during the "green light" (moving phase) and must freeze during the "red light" (frozen phase). If a player moves during the frozen state, they are eliminated. The game uses webcam input, pose detection, and face recognition to track players and identify them.
 
-### Screenshot of gameplay(:))
+To run the game, just type
 
-### Tech Stack:
+```bash
+python main.py 
+```
 
-- OpenCV | 4.11.0.86  
+on command-line, being sure to be on the right folder
+
+### Main Tech Stack:
+
+- OpenCV 
 Used for capturing video frames, image preprocessing, visual annotations, and fullscreen rendering.
 
-- YOLOv11-pose | 8.3.126  
+- YOLOv11-pose   
 Performs keypoint detection to track player movement across frames. Used to determine if a player moved during the frozen phase.
 
-- YOLOv11-face | 8.3.126  
+- YOLOv11-face   
 Detects and extracts player faces from webcam frames to be passed into the recognition pipeline.
 
-- DeepFace | 0.0.93  
+- DeepFace   
 Performs face recognition. Identifies players and assigns persistent IDs across game sessions.
 
-- pygame (planned)  
+- pygame 
 To be used for music and sound effect playback during game events (start, freeze, elimination, etc).
 
+### Folders
 
-### Additional features
-- music and visual effects
-- player database is auto-updated with new faces
-- unrecognized players are saved and assigned temporary IDs
-- game window runs in fullscreen mode.
+#### lib
+
+Containing all the classes we use
+
+#### example
+
+Some old tests with threads, not part of the game
+
+#### database
+
+Speaks for itself
