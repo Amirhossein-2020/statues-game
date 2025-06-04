@@ -46,8 +46,8 @@ class MovementDetector:
                 x2, y2, isvis2 = kpts2[kp]
                 
                 distance = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
-                if distance > 120 * diff:
-                #print(f"Keypoint who has moved: {kp} \n Edit distance = {distance} \n Freezing point: {x1, y1} \n Actual point: {x2, y2}")
+                if (isvis1 > 0.8 and isvis2 > 0.8) and distance > 100:
+                    print(f"Keypoint who has moved: {kp} \n Edit distance = {distance} \n Freezing point: {x1, y1} \n Actual point: {x2, y2}")
                     return True
         return False
 

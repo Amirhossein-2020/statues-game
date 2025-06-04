@@ -5,7 +5,7 @@ class SoundManager:
     def __init__(self, DB):
         pygame.mixer.init()
         self.sounds = {
-            "moving": self.load_sound(DB.audioListPath["music"][random.randint(0,7)]),
+            "moving": self.load_sound(DB.audioListPath["music"][0]),
             "idle": self.load_sound(DB.audioListPath["sound effect"][3]),
             "frozen": self.load_sound(DB.audioListPath["sound effect"][2]),
             "countdown": self.load_sound(DB.audioListPath["sound effect"][0]),
@@ -26,7 +26,7 @@ class SoundManager:
         self.stop_all()
         sound = self.sounds.get(sound_name)
         if sound_name == "moving":
-            self.sounds.update({"moving" : self.load_sound(DB.audioListPath["music"][random.randint(0,7)])})
+            self.sounds.update({"moving" : self.load_sound(DB.audioListPath["music"][0])})
         if sound:
             try:
                 sound.play(loops=-1 if loop else 0)

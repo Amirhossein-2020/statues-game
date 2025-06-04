@@ -145,7 +145,7 @@ def main():
                 
 
                 if time.time() - last_state_change <= INTERVAL_TIME:
-                    freeze_keypoints = people_keypoints
+                    freeze_keypoints = people_keypoints.copy()
                 # Frozen phase lasts between 5 to 8 seconds
                 if time.time() - last_state_change > freezing_time + INTERVAL_TIME:  
                     count_freezing_phases = True  
