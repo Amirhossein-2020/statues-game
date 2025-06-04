@@ -39,16 +39,16 @@ class MovementDetector:
         print(f"Differenza = {diff}")
     
 
-        for pid in range(len(kpts1)):
-            for kp in range(17):
-                if kp != 2 and kp != 3:
-                    x1, y1, isvis1 = kpts1[pid][kp]
-                    x2, y2, isvis2 = kpts2[pid][kp]
+        
+        for kp in range(17):
+            if kp != 2 and kp != 3:
+                x1, y1, isvis1 = kpts1[kp]
+                x2, y2, isvis2 = kpts2[kp]
                 
-                    distance = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
-                    if distance > 100 * diff:
-                    #print(f"Keypoint who has moved: {kp} \n Edit distance = {distance} \n Freezing point: {x1, y1} \n Actual point: {x2, y2}")
-                        return True
+                distance = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+                if distance > 120 * diff:
+                #print(f"Keypoint who has moved: {kp} \n Edit distance = {distance} \n Freezing point: {x1, y1} \n Actual point: {x2, y2}")
+                    return True
         return False
 
     @staticmethod
