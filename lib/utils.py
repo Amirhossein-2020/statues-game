@@ -1,15 +1,19 @@
 import threading
 import time
 from lib.recognition import checkFace
+
+# Funzione usata dal control Thread per gestire tutti i threads di checkface
 def wait(Threads, Return):
     for t in Threads:
         if t.is_alive():
             t.join()
     Return[0] = True
 
+# Non viene usata, inutile
 def waiting_thread_function(event_obj):
     event_obj.wait()
 
+# Funzione principale per la face recognition
 def launch_face_threads(face_boxes, frame, DB, DBPlayerToCheck, face_match, Threads):
     for i, box in enumerate(face_boxes):
         x1, y1, x2, y2 = map(int, box)
@@ -23,6 +27,9 @@ def launch_face_threads(face_boxes, frame, DB, DBPlayerToCheck, face_match, Thre
                 Threads[i].start()
         except ValueError:
             pass
+
+# Screen feedback per il giocatore
+# In base alla fase del gioco, visualizza una scritta diversa su schermo
 def get_state_text(game_state, last_state_change, moving_time, freezing_time, starting_state, control_thread_alive, control_thread_return):
     now = time.time()
     delta = int(abs(now - last_state_change))

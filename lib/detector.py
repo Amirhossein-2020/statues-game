@@ -5,9 +5,9 @@ from ultralytics import YOLO
 
 class PersonDetector:
     def __init__(self, model_name="yolo11n-pose.pt", modelface_name="yolo11n-face.pt"):
-        self.model = YOLO(model_name)
-        self.modelFace = YOLO(modelface_name)
-        self.offset = 32
+        self.model = YOLO(model_name)   # Yolo person model
+        self.modelFace = YOLO(modelface_name) # Yolo face model
+        self.offset = 32    # offset (usato solo su detect_face)
 
     def detect_people(self, frame):
         results = self.model(frame)  # class 0 = person
@@ -19,8 +19,9 @@ class PersonDetector:
         results = self.modelFace(img)
 
         if results[0].boxes is not None:
-            boxes = results[0].boxes.xyxy.cpu().numpy().astype(int)
+            boxes = results[0].boxes.xyxy.cpu().numpy().astype(int) # [x1, y1, x2, y2]
 
+            # Applico offset (ritaglio della faccia più ampio)
             for array in boxes:
                 array[0] -= self.offset
                 array[1] -= self.offset
@@ -29,6 +30,7 @@ class PersonDetector:
 
             return boxes
         return []
+    
 class MovementDetector:
     @staticmethod
     def detect_keypoint_movement(kpts1, kpts2, win, box):

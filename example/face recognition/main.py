@@ -94,7 +94,7 @@ def main():
                 try:
                     if not Threads[i].is_alive():
                         Threads[i] = (threading.Thread(target=recognition.checkFace, 
-                                                        args=(frame[y1:y2, x1:x2].copy(), DB.imageList, DB.playerList, face_match, i)))
+                                                        args=(frame[y1:y2, x1:x2].copy(), DB, DB.playerList, face_match, i)))
                         Threads[i].start()
 
                 except ValueError:

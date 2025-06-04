@@ -9,6 +9,7 @@ Threads = []
 
 observer = PersonDetector()
 
+# DOESN'T WORK
 # The return of this fuction is in face_match, sarà false di base, se trova faccia cambia il false con il nome della persona identificata
 def FaceDetection_AllInOne(Database, frame, face_match): 
 
@@ -51,6 +52,7 @@ def FaceDetection_AllInOne(Database, frame, face_match):
     
     face_match.extend("done")
 
+# Uguale alla funzione checkFace, ma fatta con un solo thread
 def OneThreadCheckFace(frame, imageListPath, keys, faceMatch, boxes):
     for i, box in enumerate(boxes):
         x1, y1, x2, y2 = map(int, box)
@@ -80,9 +82,10 @@ def OneThreadCheckFace(frame, imageListPath, keys, faceMatch, boxes):
         except:
             pass
 
-
+# Ogni singola persona su schermo ha un proprio thread che controlla la sua faccia
 def checkFace(imgToCompare, DB, keys, faceMatch, i):
 
+    # Fast check, se la persona ha gia un nome (era stata trovata in precedenza), controlla subito se la persona è la stessa
     '''
     try:
         if faceMatch[i] is not False:
@@ -108,8 +111,11 @@ def checkFace(imgToCompare, DB, keys, faceMatch, i):
     result = {"verified": False}
 
     for key in keys:
-        for i, path in enumerate(DB.imageList[key]):
+        for path in DB.imageList[key]:
 
+            # Path = immagine caricata, controllo se non è stringa, 
+            # ovvero il percorso, se non è la trasformo in numpy array, 
+            # se fallisce gli passo il percorso dell'immagine (Con il percorso deve ricaricare l'immagine)
             img = path
 
             try:
@@ -118,8 +124,10 @@ def checkFace(imgToCompare, DB, keys, faceMatch, i):
                 else:
                     img = path
             except:
-                img = DB.imageListPath[key][i]
-            
+                img = DB.imageListPath[key][0]
+
+            # Purtroppo se l'immagine è troppo mossa e 
+            # DeepFace non riesce a trovare la faccia fa errore            
             try:
                 result = DeepFace.verify(imgToCompare, img)
             
@@ -128,10 +136,13 @@ def checkFace(imgToCompare, DB, keys, faceMatch, i):
                 print(e)
                 continue
 
-            print(f"distance: {result['distance']}, threshold: {result['threshold']}, Person: {i}, db_img: {DB.imageListPath[key][i]}")
+            # Usato per debuggin
+            #print(f"distance: {result['distance']}, threshold: {result['threshold']}, Person: {i}, db_img: {DB.imageListPath[key][i]}")
 
             # Se la % che non sia la persona della cartella è alta, cambia cartella
-            # Se è match, esci dalla funzione
+            # Se è match, esci dalla funzione.
+            # Usata in fase di sviluppo, ma alla fine non viene eseguita poiché 
+            # viene creata solo un'immagine per persona
             if result["verified"] or result["distance"] > 0.70:
                 if result["verified"]:
                     faceMatch[i] = key

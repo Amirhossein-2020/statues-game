@@ -18,23 +18,25 @@ def main():
     detector = PersonDetector()
 
 
-    # Window options
-    video = cv2.VideoCapture(1)
+    # * Window options * #
+    video = cv2.VideoCapture(1) # !ATTENZIONE! Se lo schermo è arancione, cambiare lo 0 con 1 o viceversa
+    
+    # Le funzioni con ctypes servono solo per migliorare, anche se di poco, la qualità dell'immagine
     user32 = ctypes.windll.user32
     win_x, win_y = [user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)]
     area_win = win_x * win_y
     cv2.namedWindow("Statues Game", cv2.WND_PROP_FULLSCREEN)
     cv2.setWindowProperty("Statues Game", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
-    #Initializing database
+    # * Initializing database * #
     DB = db.DB()
     DB.LoadDB()
 
-    # Sound Manager
+    # * Sound Manager * #
     sound_manager = SoundManager(DB)
     sound_manager.play("idle", DB=DB, loop=True)
 
-    # Pre-game variables
+    # * Pre-game variables * #
     freeze_frame = None
     freeze_keypoints = None
     game_state = "idle" # idle, moving, frozen, ended
@@ -54,28 +56,24 @@ def main():
     notRecognized = "Unknown"
     last_state_change = time.time()
     
-    # Face recognition variables
-    face_match = []
-    startRecognition = False
-    Threads = []
-    event_obj = threading.Event()
+    # * Face recognition variables * #
+    face_match = [] # Nomi giocatori, risultati True per DeepFace, None per chi non è ancora stato controllato, Not in database per chi non esiste
+    startRecognition = False # Invece del waiting thread, viene utilizzata questa variabile
+    Threads = [] # Lista di threads che eseguiranno recognition.checkFace()
 
-    waitingThread = threading.Thread(target= waiting_thread_function,
-                                     args=(event_obj, ),
-                                     daemon=True)
-    
     ControlThreadReturn = [False]
     ControlThread = threading.Thread(target=wait,
                                      args=(Threads, ControlThreadReturn, ),
                                      daemon= True)
-    counter = 1
+    counter = 1 # Pseudo timer
 
     oneTimeRecognition = True
     oneTimeThreadControl = True
-    firstRecognitionStarted = False
+    firstRecognitionStarted = False # Serve per assicursi che i thread, all'avvio partano almeno una volta
 
     ### MAIN PROGRAM ###
     while True:
+        
         # Get frame of the webcam
         ret, frame = video.read()
         if not ret:
@@ -97,7 +95,7 @@ def main():
 
         if starting_state != 1:
             
-            #face_match = face_match[0:len(boxes)]
+            #face_match = face_match[0:len(boxes)] # NON USARE rovina il funzionamento dei threads
             if len(face_boxes) < len(face_match):
                 for index in range(len(face_boxes), len(face_match)):
                     face_match[index] = notRecognized
@@ -153,7 +151,7 @@ def main():
                         area_box = (x2 - x1) * (y2 - y1)
                         # Eliminate players if frozen and not already eliminated
                         if game_state == "frozen" and player_id not in eliminated and time.time() - last_state_change > INTERVAL_TIME:
-                            is_moving = MovementDetector.detect_keypoint_movement(freeze_keypoints, people_keypoints, area_win, area_box)
+                            is_moving = MovementDetector.detect_keypoint_movement(freeze_keypoints, people_keypoints, area_win, area_box, i)
                             #score = MovementDetector.detect_movement(freeze_frame, frame, people_boxes[i])
                             if is_moving:
                                 eliminated.append(face_match[i])
@@ -173,6 +171,7 @@ def main():
                                 if (iv > 0.7):
                                     cv2.circle(frame, (int(x),int(y)), 3, color, -1)
                             cv2.putText(frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+
         # Waiting time before going to "moving" phase
         if game_state == "idle" and starting_state == 1:
 
@@ -220,8 +219,9 @@ def main():
             ControlThread.is_alive() if ControlThread else False,
             ControlThreadReturn[0]
         )
+
         cv2.putText(frame, state_text, (20, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
-        cv2.putText(frame, f'''Players Eliminated: {eliminated} \n More than one player? {more_than_one_player} ''', (win_x-840, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        #cv2.putText(frame, f'''Players Eliminated: {eliminated} \n More than one player? {more_than_one_player} ''', (win_x-840, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
 
         if starting_state == 0:
             cv2.putText(frame, "Press S to start", (20, 470), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (200, 200, 200), 1)
@@ -232,14 +232,17 @@ def main():
             cv2.putText(frame, "Press R to restart", (int(win_x/2), int(win_y/2)), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 1)
             cv2.putText(frame, "Esc to exit", (int(win_x/2), int((win_y/2)+30)), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 1)
 
+        
         for i, box in enumerate(face_boxes):
             if i < initialPlayerRemain:
                 x1, y1, x2, y2 = map(int, box)
                 cv2.putText(frame, face_match[i], (x1,y1-20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
+        
 
         cv2.imshow("Statues Game", frame)
         counter += 1
         print(counter)
+        print(face_match)
 
         key = cv2.waitKey(1)
         if key == 27: # ESC
