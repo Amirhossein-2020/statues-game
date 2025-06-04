@@ -121,6 +121,11 @@ def main():
                     firstRecognitionStarted = True
         
 
+            for i, box in enumerate(face_boxes):
+                if i < initialPlayerRemain:
+                    x1, y1, x2, y2 = map(int, box)
+                    cv2.putText(frame, face_match[i], (x1,y1-20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
+
         # Timing
         if game_state != "idle":
 
@@ -258,13 +263,6 @@ def main():
             cv2.putText(frame, f'''Eliminated at freeze phase n° {freezing_phases}''', (win_x-640, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
             cv2.putText(frame, "Press R to restart", (int(win_x/2), int(win_y/2)), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 1)
             cv2.putText(frame, "Esc to exit", (int(win_x/2), int((win_y/2)+30)), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 1)
-
-        
-        for i, box in enumerate(face_boxes):
-            if i < initialPlayerRemain:
-                x1, y1, x2, y2 = map(int, box)
-                cv2.putText(frame, face_match[i], (x1,y1-20), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 3)
-        
 
         cv2.imshow("Statues Game", frame)
         counter += 1
